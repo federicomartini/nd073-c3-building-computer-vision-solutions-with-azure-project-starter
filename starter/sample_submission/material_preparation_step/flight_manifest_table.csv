@@ -1,0 +1,6 @@
+﻿Flight No,Origin,Destination,Date,Time,First Name,Last Name,Sex,SeatNo,DateofBirth,DoBValidation,PersonValidation,LuggageValidation,NameValidation,BoardingPassValidation
+UA-123,San Francisco,New York,10 July 2021,10:00,Avkash,Chauhan,M,10A,31 August 1977,False,False,False,False,False
+UA-123,San Francisco,New York,10 July 2021,10:00,Jimmy,Jackson,M,10B,1 April 1997,False,False,False,False,False
+UA-123,San Francisco,New York,10 July 2021,10:00,Sarah,Simpson,F,15B,8 September 1995,False,False,False,False,False
+UA-123,San Francisco,New York,10 July 2021,10:00,Federico,Martini,M,7A,10 December 1980,False,False,False,False,False
+UA-123,San Francisco,New York,10 July 2021,10:00,Paul,Dini,M,48B,1 January 1963,False,False,False,False,False
