@@ -15,9 +15,10 @@ def get_face_id(face_image):
     else:
         return faces[0].face_id
 
-def are_faces_identical(input_face_a, input_face_b):
+def get_face_comparison_confidence(input_face_a, input_face_b):
     
     detected_face_a = get_face_id(input_face_a)
     detected_face_b = get_face_id(input_face_b)
+    confidence = face_client.face.verify_face_to_face(detected_face_a, detected_face_b).confidence
 
-    return face_client.face.verify_face_to_face(detected_face_a, detected_face_b).confidence > 0.65
+    return confidence

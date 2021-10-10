@@ -10,16 +10,33 @@ from io import BytesIO
 import os
 from ID_Document import extract_id_data
 from Boarding_Pass import BoardingPass
-from face_detection import are_faces_identical
+from face_detection import get_face_comparison_confidence
 from get_thumbnail import get_custom_face_picture
 from lighter_mdl import find_lighter
 import argparse
 
 FEDERICOM_ID = 4
+log_enabled = False
 
 def passenger_validation(boarding_pass, id_img_path, luggage_img):
 
     first_name, last_name, date_of_birth, sex = extract_id_data(id_img_full_path)
+
+    print_on_screen(log_enabled, "ID CARD DATA\n"
+                            "First Name: {}\n"
+                            "Last Name: {}\n"
+                            "Date of birth: {}\n"
+                            "Sex: {}\n\n".format(first_name, last_name, date_of_birth, sex))
+
+    print_on_screen(log_enabled, "BOARDING PASS DATA\n"
+                            "First Name: {}\n"
+                            "Last Name: {}\n"
+                            "Flight: {}\n"
+                            "Seat: {}\n"
+                            "From: {}\n"
+                            "To: {}\n\n".format(boarding_pass.get('FirstName'), boarding_pass.get('LastName'), boarding_pass.get('FlightNumber'), half_field(boarding_pass.get('Seat')),
+                                                half_field(boarding_pass.get('From')), half_field(boarding_pass.get('To'))))
+
     manifest_df_copy = manifest_df.copy()
     manifest_df_copy["Full Name"] = manifest_df_copy["First Name"] + manifest_df_copy["Last Name"]
     passenger_manifest_index = get_passenger_manifest_index(manifest_df, first_name, last_name)
@@ -58,7 +75,8 @@ def passenger_validation(boarding_pass, id_img_path, luggage_img):
               "Your seat number is {}, and it is confirmed.".format(first_name, last_name, flight_number, time_str,
                                                                      from_location, to_destination, seat))
 
-        face_validation = validate_id(id_img_path, first_name, last_name)
+        face_confidence = validate_id(id_img_path, first_name, last_name)
+        face_validation = face_confidence > 0.65
         baggage_validation = not(luggage_validation(luggage_img))
 
         if face_validation and baggage_validation:
@@ -83,11 +101,19 @@ def passenger_validation(boarding_pass, id_img_path, luggage_img):
             print("We have found a prohibited item in your carry-on baggage, "
                 "and it is flagged for removal. \n"
                 "Your identity could not be verified. Please see a customer service representative.\n")
+        
+        print_on_screen(log_enabled, "\n\nFace comparison confidence is: {}\n\n".format(face_confidence))
+        
+        print_on_screen(log_enabled, "MANIFEST - VALIDATION TABLE")
+        print_on_screen(log_enabled, manifest_df.head())
  
     else:
         print("Dear Sir/Madam,\n"
               "Some of the information on your ID card does not match the flight manifest data, "
               "so you cannot board the plane. Please see a customer service representative.\n")
+
+def print_on_screen(enable_print, string_to_display):
+    if(enable_print): print(string_to_display)
 
 def print_line_separator(line_length):
     print('\n' + '='*line_length + '\n')
@@ -126,14 +152,18 @@ def validate_id(id_img_path, name, surname):
     image_from_id = BytesIO(open(id_img_path, 'rb').read())
     image_from_video = BytesIO(get_custom_face_picture(name, surname))
 
-    return are_faces_identical(image_from_id, image_from_video)
+    return get_face_comparison_confidence(image_from_id, image_from_video)
 
 def luggage_validation(luggage_img):
     return find_lighter(luggage_img)
 
 if __name__ == '__main__':
 
-    manifest_df = pd.read_csv("../material_preparation_step/flight_manifest_table.csv", sep=",")
+    try:
+        manifest_df = pd.read_csv("flight_manifest_table_final.csv", sep=",")
+    except:
+        manifest_df = pd.read_csv("../material_preparation_step/flight_manifest_table.csv", sep=",")
+    
     root_dir = "."
     luggage_dir = "lighter_test_images"
     id_dir = "../material_preparation_step/Digital_ID"
@@ -141,7 +171,10 @@ if __name__ == '__main__':
 
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--id', default=FEDERICOM_ID, type=int)
+    args_parser.add_argument('--log', default=False, type=str)
     args = args_parser.parse_args()
+
+    log_enabled = args.log
 
     id_img_full_path = id_dir + '/ca-dl-{}.png'.format(args.id)
     boarding_pass_full_path = boarding_pass_dir + '/boarding_pass_{}.pdf'.format(args.id)
@@ -155,4 +188,4 @@ if __name__ == '__main__':
 
     passenger_validation(boarding_pass_details, id_img_full_path, luggage_img_full_path)
 
-    manifest_df.to_csv('manifest_final.csv', index=False)
+    manifest_df.to_csv('flight_manifest_table_final.csv', index=False)

@@ -66,17 +66,20 @@ def get_custom_face_picture(name, surname):
     person = create_person(vi.vi_location, vi.vi_account_id, person_model, (name+surname+'_Person'), accessToken)
     custom_face = create_custom_face(vi.vi_location, vi.vi_account_id, person_model, person, accessToken)
 
+    get_emotions(video_info)
+    get_sentiments(video_info)
+
     params = {"accessToken": accessToken}
     resp = get("https://api.videoindexer.ai/{}/Accounts/{}/Customization/PersonModels/{}/Persons/{}/Faces/{}".format(vi.vi_location, vi.vi_account_id, person_model, person, custom_face), params=params)
 
     return resp.content
 
 
-def get_sentiments():
+def get_sentiments(video_info):
     sentiments = video_info['summarizedInsights']['sentiments']
     print('Sentiments: ', sentiments)
 
-def get_emotions():
+def get_emotions(video_info):
     emotions = video_info['summarizedInsights']['emotions']
     print('Emotions: ', emotions)
 
