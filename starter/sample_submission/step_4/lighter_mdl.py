@@ -13,4 +13,4 @@ def find_lighter(img_path):
     with open(img_path, "rb") as image:
         results = predictor.detect_image(project_id, "Iteration1", image.read())
 
-    return results.predictions[0].probability > 0.5
+    return results.predictions[0].probability > 0.65
